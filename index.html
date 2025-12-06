@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Asociar Conceptos</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; }
+h2 { color: #333; }
+.container { display: flex; gap: 40px; }
+.column { width: 45%; }
+.item, .target {
+  padding: 10px;
+  margin: 8px 0;
+  border: 2px solid #555;
+  border-radius: 8px;
+  cursor: grab;
+  background-color: #f7f7f7;
+}
+.target { background-color: #e0f7fa; height: 50px; }
+.correct { background-color: #c8e6c9 !important; }
+.incorrect { background-color: #ffcdd2 !important; }
+button { margin-top: 20px; padding: 10px 15px; }
+</style>
+</head>
+
+<body>
+<h2>Asocia cada concepto con su significado</h2>
+<p>Arrastra los conceptos (izquierda) hacia su equivalencia (derecha).</p>
+
+<div class="container">
+  <!-- Columna de conceptos -->
+  <div class="column">
+    <h3>Conceptos</h3>
+    <div class="item" draggable="true" id="curriculo">Currículo</div>
+    <div class="item" draggable="true" id="didactica">Didáctica</div>
+    <div class="item" draggable="true" id="evaluacion">Evaluación</div>
+  </div>
+
+  <!-- Columna de equivalencias -->
+  <div class="column">
+    <h3>Equivalencias</h3>
+    <div class="target" data-match="curriculo">Tejido de sabiduría y conocimiento</div>
+    <div class="target" data-match="didactica">Arte de orientar el aprendizaje</div>
+    <div class="target" data-match="evaluacion">Proceso para comprender el aprendizaje</div>
+  </div>
+</div>
+
+<button onclick="verificar()">Verificar respuestas</button>
+
+<script>
+const items = document.querySelectorAll('.item');
+const targets = document.querySelectorAll('.target');
+let draggedItem = null;
+
+items.forEach(item => {
+  item.addEventListener('dragstart', () => draggedItem = item);
+});
+
+targets.forEach(target => {
+  target.addEventListener('dragover', e => e.preventDefault());
+  target.addEventListener('drop', function() {
+    this.innerHTML = "";
+    this.appendChild(draggedItem);
+  });
+});
+
+function verificar() {
+  targets.forEach(target => {
+    const item = target.querySelector('.item');
+    if (!item) return;
+    if (item.id === target.dataset.match) {
+      target.classList.add('correct');
+      target.classList.remove('incorrect');
+    } else {
+      target.classList.add('incorrect');
+      target.classList.remove('correct');
+    }
+  });
+}
+</script>
+</body>
+</html>
