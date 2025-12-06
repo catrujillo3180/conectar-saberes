@@ -1,82 +1,450 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Juego de Asociar Conceptos</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 40px; }
-h2 { color: #333; }
-.container { display: flex; gap: 40px; }
-.column { width: 45%; }
-.item, .target {
-  padding: 10px;
-  margin: 8px 0;
-  border: 2px solid #555;
-  border-radius: 8px;
-  cursor: grab;
-  background-color: #f7f7f7;
-}
-.target { background-color: #e0f7fa; height: 50px; }
-.correct { background-color: #c8e6c9 !important; }
-.incorrect { background-color: #ffcdd2 !important; }
-button { margin-top: 20px; padding: 10px 15px; }
-</style>
-</head>
-
-<body>
-<h2>Asocia cada concepto con su significado</h2>
-<p>Arrastra los conceptos (izquierda) hacia su equivalencia (derecha).</p>
-
-<div class="container">
-  <!-- Columna de conceptos -->
-  <div class="column">
-    <h3>Conceptos</h3>
-    <div class="item" draggable="true" id="curriculo">Currículo</div>
-    <div class="item" draggable="true" id="didactica">Didáctica</div>
-    <div class="item" draggable="true" id="evaluacion">Evaluación</div>
-  </div>
-
-  <!-- Columna de equivalencias -->
-  <div class="column">
-    <h3>Equivalencias</h3>
-    <div class="target" data-match="curriculo">Tejido de sabiduría y conocimiento</div>
-    <div class="target" data-match="didactica">Arte de orientar el aprendizaje</div>
-    <div class="target" data-match="evaluacion">Proceso para comprender el aprendizaje</div>
-  </div>
-</div>
-
-<button onclick="verificar()">Verificar respuestas</button>
-
-<script>
-const items = document.querySelectorAll('.item');
-const targets = document.querySelectorAll('.target');
-let draggedItem = null;
-
-items.forEach(item => {
-  item.addEventListener('dragstart', () => draggedItem = item);
-});
-
-targets.forEach(target => {
-  target.addEventListener('dragover', e => e.preventDefault());
-  target.addEventListener('drop', function() {
-    this.innerHTML = "";
-    this.appendChild(draggedItem);
-  });
-});
-
-function verificar() {
-  targets.forEach(target => {
-    const item = target.querySelector('.item');
-    if (!item) return;
-    if (item.id === target.dataset.match) {
-      target.classList.add('correct');
-      target.classList.remove('incorrect');
-    } else {
-      target.classList.add('incorrect');
-      target.classList.remove('correct');
+  <meta charset="UTF-8" />
+  <title>Juego: Tejiendo Saberes y Conocimientos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fb;
+      color: #333;
     }
-  });
-}
-</script>
+
+    h1 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .container {
+      display: flex;
+      gap: 24px;
+      max-height: 70vh;
+      overflow-y: auto; /* scroll compartido para ambas columnas */
+      padding: 16px;
+      box-sizing: border-box;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .column {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .column h3 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 10px;
+    }
+
+    .item,
+    .target {
+      border-radius: 10px;
+      padding: 10px 10px 8px;
+      border: 1px solid #ccc;
+      background: #f9fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .item {
+      cursor: grab;
+      background: #eef4ff;
+    }
+
+    .row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .main-text {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .hint-btn {
+      border: none;
+      background: #ffe082;
+      border-radius: 999px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hint-btn:hover {
+      filter: brightness(0.97);
+    }
+
+    .hint-text {
+      display: none;
+      font-size: 0.85rem;
+      color: #444;
+      background: #fffdf3;
+      border-left: 3px solid #ffca28;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+
+    .hint-text.visible {
+      display: block;
+    }
+
+    .target {
+      min-height: 60px;
+      background: #e3f2fd;
+      position: relative;
+    }
+
+    .target.correct {
+      background: #c8e6c9;
+      border-color: #2e7d32;
+    }
+
+    .target.incorrect {
+      background: #ffdde0;
+      border-color: #c62828;
+    }
+
+    .buttons {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button.action-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    #check-btn {
+      background: #3949ab;
+      color: white;
+    }
+
+    #reset-btn {
+      background: #eeeeee;
+      color: #333;
+    }
+
+    #check-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    #reset-btn:hover {
+      filter: brightness(0.97);
+    }
+
+    #feedback {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Tejiendo Saberes y Conocimientos</h1>
+  <h2>Arrastra cada concepto de la educación tradicional hacia su equivalencia en la educación indígena propia.</h2>
+
+  <div class="container">
+    <div class="column">
+      <h3>Educación Tradicional (No Étnica)</h3>
+      <div id="left-items" class="list"></div>
+    </div>
+
+    <div class="column">
+      <h3>Educación Indígena Propia (Etnoeducación)</h3>
+      <div id="right-items" class="list"></div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button id="check-btn" class="action-btn">Verificar respuestas</button>
+    <button id="reset-btn" class="action-btn">Reiniciar juego</button>
+  </div>
+
+  <div id="feedback"></div>
+
+  <script>
+    // Datos del juego: pares de conceptos + definiciones
+    const pairs = [
+      {
+        id: "p1",
+        leftLabel: "Currículo",
+        leftDef:
+          "Un plan de estudios estandarizado, estructurado por el Ministerio de Educación Nacional (MEN), enfocado en asignaturas y estándares de competencia universales. Su fin principal es la formación para el mercado laboral y el acceso a la educación superior.",
+        rightLabel: "Tejido de sabiduría y conocimiento",
+        rightDef:
+          "La Ruta de Formación Cultural y Plan de Vida de la comunidad. Es un mandato político y cultural dinámico que se articula en torno a los Ciclos de Vida y los Ejes del Territorio. Su fin es la conservación de la identidad y la cultura."
+      },
+      {
+        id: "p2",
+        leftLabel: "PEI (Proyecto Educativo Institucional)",
+        leftDef:
+          "Un documento administrativo y de gestión de carácter obligatorio. Define la filosofía, metas y procedimientos de la institución, generalmente alineados con indicadores de calidad externos (pruebas estandarizadas).",
+        rightLabel: "(PEC) Proyecto Educativo Comunitario",
+        rightDef:
+          "Es reemplazado o subsumido por el PEC (Proyecto Educativo Comunitario) o Plan de Vida Educativo. Es un documento de autonomía construido y aprobado por la Asamblea Comunal o las Autoridades Indígenas. Su propósito es garantizar la autodeterminación y el desarrollo endógeno."
+      },
+      {
+        id: "p3",
+        leftLabel: "Docentes de aula",
+        leftDef:
+          "Un profesional graduado y certificado, con dominio en una disciplina específica. Su rol principal es la transmisión de conocimientos establecidos en el currículo y la evaluación del desempeño individual del estudiante.",
+        rightLabel: "Dinamizadores pedagógicos comunitarios",
+        rightDef:
+          "Son Sabedores, Mayores, Autoridades Espirituales o Etnoeducadores. Son los Guardianes y Mediadores del Conocimiento Propio. Su rol es articular los Saberes Ancestrales con los conocimientos externos, actuando como guías culturales y formadores para la vida comunitaria."
+      },
+      {
+        id: "p4",
+        leftLabel: "Participación familiar familia",
+        leftDef:
+          "Un agente de apoyo a la labor de la escuela, responsable de la supervisión de tareas y de participar en eventos puntuales. La educación se ve como un proceso que ocurre principalmente dentro de la institución.",
+        rightLabel: "Vivencia comunitaria",
+        rightDef:
+          "El Núcleo Central y la Primera Escuela. Los padres, madres y abuelos son pedagogos primarios que transmiten la lengua, valores y prácticas en el contexto de la vida cotidiana y productiva. La escuela es solo una extensión de este proceso."
+      },
+      {
+        id: "p5",
+        leftLabel: "Gobierno Escolar",
+        leftDef:
+          "Un órgano de participación democrática compuesto por el rector, representantes de docentes, padres y estudiantes. Se enfoca en la gestión interna y administrativa de la escuela.",
+        rightLabel: "Semillas de autoridad",
+        rightDef:
+          "Está subordinado al Gobierno Propio Indígena. Las decisiones educativas son tomadas por el Cabildo, las Autoridades Tradicionales y el Consejo de Mayores de la comunidad. Esto asegura la coherencia entre la escuela y el control político-territorial."
+      },
+      {
+        id: "p6",
+        leftLabel: "Contenidos Curriculares",
+        leftDef:
+          "Son las áreas fundamentales y obligatorias (Matemáticas, Ciencias Sociales, Lenguaje, etc.). Se centran en la adquisición de competencias definidas por estándares nacionales e internacionales.",
+        rightLabel: "Saberes ancestrales",
+        rightDef:
+          "Son los Saberes Propios (Cosmovisión, Medicina Tradicional, Derecho Propio, Lengua Materna, Economía Comunitaria). Se centran en el fortalecimiento de la identidad y la formación de comuneros para la pervivencia cultural del pueblo."
+      },
+      {
+        id: "p7",
+        leftLabel: "Evaluación",
+        leftDef:
+          "Es cuantitativa y sumativa. Se enfoca en medir el desempeño individual del estudiante, generalmente mediante exámenes y calificaciones numéricas, buscando la certificación de competencias para el tránsito de nivel.",
+        rightLabel: "retroalimentación",
+        rightDef:
+          "Es cualitativa, formativa y comunitaria. Mide el crecimiento integral del estudiante en relación con su comunidad y territorio. Se evalúa la participación, el respeto a la cultura y la aplicación del saber en la vida práctica. Es un proceso de valoración mutua y constante retroalimentación."
+      }
+    ];
+
+    let draggedItem = null;
+
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function createLeftItem(pair) {
+      const item = document.createElement("div");
+      item.className = "item";
+      item.draggable = true;
+      item.dataset.id = pair.id;
+
+      const topRow = document.createElement("div");
+      topRow.className = "row-top";
+
+      const text = document.createElement("span");
+      text.className = "main-text";
+      text.textContent = pair.leftLabel;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hint-btn";
+      btn.textContent = "💡 Ver definición";
+
+      const hint = document.createElement("div");
+      hint.className = "hint-text";
+      hint.textContent = pair.leftDef;
+
+      topRow.appendChild(text);
+      topRow.appendChild(btn);
+      item.appendChild(topRow);
+      item.appendChild(hint);
+
+      item.addEventListener("dragstart", () => {
+        draggedItem = item;
+      });
+
+      item.addEventListener("dragend", () => {
+        draggedItem = null;
+      });
+
+      return item;
+    }
+
+    function createRightTarget(pair) {
+      const target = document.createElement("div");
+      target.className = "target";
+      target.dataset.match = pair.id;
+
+      const topRow = document.createElement("div");
+      topRow.className = "row-top";
+
+      const text = document.createElement("span");
+      text.className = "main-text";
+      text.textContent = pair.rightLabel;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hint-btn";
+      btn.textContent = "💡 Ver significado";
+
+      const hint = document.createElement("div");
+      hint.className = "hint-text";
+      hint.textContent = pair.rightDef;
+
+      topRow.appendChild(text);
+      topRow.appendChild(btn);
+      target.appendChild(topRow);
+      target.appendChild(hint);
+
+      target.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+
+      target.addEventListener("drop", function () {
+        if (!draggedItem) return;
+        const leftContainer = document.getElementById("left-items");
+
+        const existing = this.querySelector(".item");
+        if (existing) {
+          leftContainer.appendChild(existing);
+        }
+
+        this.appendChild(draggedItem);
+        this.classList.remove("correct", "incorrect");
+      });
+
+      return target;
+    }
+
+    function buildGame() {
+      const leftContainer = document.getElementById("left-items");
+      const rightContainer = document.getElementById("right-items");
+      const feedback = document.getElementById("feedback");
+
+      leftContainer.innerHTML = "";
+      rightContainer.innerHTML = "";
+      feedback.textContent = "";
+
+      const leftOrder = shuffle(pairs);
+      const rightOrder = shuffle(pairs);
+
+      leftOrder.forEach((pair) => {
+        leftContainer.appendChild(createLeftItem(pair));
+      });
+
+      rightOrder.forEach((pair) => {
+        rightContainer.appendChild(createRightTarget(pair));
+      });
+    }
+
+    function verificar() {
+      const targets = document.querySelectorAll(".target");
+      let correct = 0;
+      const total = pairs.length;
+
+      targets.forEach((target) => {
+        const item = target.querySelector(".item");
+        target.classList.remove("correct", "incorrect");
+
+        if (!item) return;
+
+        if (item.dataset.id === target.dataset.match) {
+          target.classList.add("correct");
+          correct++;
+        } else {
+          target.classList.add("incorrect");
+        }
+      });
+
+      const feedback = document.getElementById("feedback");
+      if (correct === total) {
+        feedback.textContent =
+          "¡Muy bien! Has asociado correctamente los " + total + " pares de conceptos.";
+      } else {
+        feedback.textContent =
+          "Llevas " + correct + " de " + total + " asociaciones correctas. Sigue intentando.";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // Construir el juego al cargar
+      buildGame();
+
+      // Permitir soltar de nuevo en la columna izquierda (para “deshacer”)
+      const leftContainer = document.getElementById("left-items");
+      leftContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+      leftContainer.addEventListener("drop", function () {
+        if (!draggedItem) return;
+        this.appendChild(draggedItem);
+      });
+
+      // Botones
+      document.getElementById("check-btn").addEventListener("click", verificar);
+      document.getElementById("reset-btn").addEventListener("click", buildGame);
+
+      // Manejar los bombillos (mostrar/ocultar definiciones) con delegación
+      document.body.addEventListener("click", (e) => {
+        if (e.target.classList.contains("hint-btn")) {
+          const card = e.target.closest(".item, .target");
+          if (!card) return;
+          const hint = card.querySelector(".hint-text");
+          if (!hint) return;
+          hint.classList.toggle("visible");
+        }
+      });
+    });
+  </script>
 </body>
 </html>
